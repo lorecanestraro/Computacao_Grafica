@@ -2,9 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-# ==============================
-# Funções auxiliares
-# ==============================
+
 
 def show_and_save(img, title, filename):
     """Mostra e salva a imagem."""
@@ -14,9 +12,7 @@ def show_and_save(img, title, filename):
     plt.axis('off')
     plt.show()
 
-# ==============================
-# 1) Filtro da Mediana (circuito.tif)
-# ==============================
+
 img1 = cv2.imread("circuito.tif", cv2.IMREAD_GRAYSCALE)
 
 med1 = cv2.medianBlur(img1, 3)
@@ -27,9 +23,7 @@ show_and_save(med1, "Mediana 1", "resultado_mediana1.png")
 show_and_save(med2, "Mediana 2", "resultado_mediana2.png")
 show_and_save(med3, "Mediana 3", "resultado_mediana3.png")
 
-# ==============================
-# 2) Detecção de pontos isolados (pontos.png)
-# ==============================
+
 img2 = cv2.imread("pontos.png", cv2.IMREAD_GRAYSCALE)
 
 kernel = np.array([[-1,-1,-1],
@@ -41,12 +35,10 @@ _, pontos_bin = cv2.threshold(pontos, 200, 255, cv2.THRESH_BINARY)
 
 show_and_save(pontos_bin, "Pontos isolados", "resultado_pontos.png")
 
-# ==============================
-# 3) Detecção de linhas (linhas.png)
-# ==============================
+
 img3 = cv2.imread("linhas.png", cv2.IMREAD_GRAYSCALE)
 
-# Máscaras
+
 horizontal = np.array([[-1,-1,-1],
                        [ 2, 2, 2],
                        [-1,-1,-1]])
@@ -63,33 +55,29 @@ diag2 = np.array([[-1,-1, 2],
                   [-1, 2,-1],
                   [ 2,-1,-1]])
 
-# Convoluções
+
 lin_h = cv2.filter2D(img3, -1, horizontal)
 lin_v = cv2.filter2D(img3, -1, vertical)
 lin_d1 = cv2.filter2D(img3, -1, diag1)
 lin_d2 = cv2.filter2D(img3, -1, diag2)
 
-# Limiarização
+
 _, th_h = cv2.threshold(lin_h, 50, 255, cv2.THRESH_BINARY)
 _, th_v = cv2.threshold(lin_v, 50, 255, cv2.THRESH_BINARY)
 _, th_d1 = cv2.threshold(lin_d1, 50, 255, cv2.THRESH_BINARY)
 _, th_d2 = cv2.threshold(lin_d2, 50, 255, cv2.THRESH_BINARY)
 
-# Combinação
+
 final = cv2.bitwise_or(cv2.bitwise_or(th_h, th_v), cv2.bitwise_or(th_d1, th_d2))
 show_and_save(final, "Linhas Detectadas", "resultado_linhas.png")
 
-# ==============================
-# 4) Detector de Canny (igreja.png)
-# ==============================
+
 img4 = cv2.imread("igreja.png", cv2.IMREAD_GRAYSCALE)
 
 canny = cv2.Canny(img4, 100, 200)
 show_and_save(canny, "Canny", "resultado_canny.png")
 
-# ==============================
-# 5) Crescimento de Região (root.jpg)
-# ==============================
+
 def region_growing(img, seed, threshold=5):
     visited = np.zeros_like(img, dtype=np.uint8)
     h, w = img.shape
@@ -100,7 +88,6 @@ def region_growing(img, seed, threshold=5):
         x, y = stack.pop()
         if visited[x,y] == 0:
             visited[x,y] = 255
-            # Vizinhos 8-conectados
             for dx in [-1,0,1]:
                 for dy in [-1,0,1]:
                     nx, ny = x+dx, y+dy
@@ -110,13 +97,11 @@ def region_growing(img, seed, threshold=5):
     return visited
 
 img5 = cv2.imread("root.jpg", cv2.IMREAD_GRAYSCALE)
-seed_point = (50,50)  # Exemplo, precisa ajustar manualmente dentro da célula
+seed_point = (50,50)
 region = region_growing(img5, seed_point)
 show_and_save(region, "Crescimento de Região", "resultado_regiao.png")
 
-# ==============================
-# 6) Limiarização de Otsu
-# ==============================
+
 def otsu_threshold(img):
     hist, bins = np.histogram(img.ravel(), 256, [0,256])
     total = img.size
